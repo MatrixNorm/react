@@ -10,7 +10,58 @@ describe('ex1', () => {
     ReactDOM = require('react-dom');
   });
 
-  it('xyz', () => {
-    console.log('hi');
+  it('test1', () => {
+    function App() {
+      return <div>hi</div>;
+    }
+    const container = document.createElement('div');
+    ReactDOM.render(<App />, container);
+  });
+
+  it('test2', () => {
+    function App() {
+      return (
+        <div>
+          <p>123</p>
+          <span>45</span>
+        </div>
+      );
+    }
+    const container = document.createElement('div');
+    ReactDOM.render(<App />, container);
+  });
+
+  it('test3', () => {
+    const buttonRef = React.createRef();
+
+    function App() {
+      return (
+        <div>
+          <Sub />
+          <span>petrushka</span>
+        </div>
+      );
+    }
+
+    function Sub() {
+      const [counter, setCounter] = React.useState(0);
+      function increment() {
+        setCounter(prev => prev + 1);
+      }
+      return (
+        <button onClick={increment} ref={buttonRef}>
+          {counter}
+        </button>
+      );
+    }
+
+    const container = document.createElement('div');
+    ReactDOM.render(<App />, container);
+
+    console.log('---------------------------------');
+    // Dispatch a click event
+    const event = document.createEvent('Event');
+    event.initEvent('click', true, true);
+    buttonRef.current.dispatchEvent(event);
   });
 });
