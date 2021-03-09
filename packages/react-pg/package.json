@@ -3,8 +3,8 @@
   "description": "React bindings for PostgreSQL",
   "version": "0.0.0",
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/facebook/react.git",
+    "type": "git",
+    "url": "https://github.com/facebook/react.git",
     "directory": "packages/react-pg"
   },
   "files": [
@@ -29,7 +29,7 @@
     "./package.json": "./package.json"
   },
   "peerDependencies": {
-    "react": "^17.0.0",
-    "pg": "*"
+    "pg": "*",
+    "react": "^17.0.0"
   }
 }
