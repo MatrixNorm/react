@@ -189,6 +189,7 @@ function legacyRenderSubtreeIntoContainer(
   let root: RootType = (container._reactRootContainer: any);
   let fiberRoot;
   if (!root) {
+    console.log('Initial mount');
     // Initial mount
     root = container._reactRootContainer = legacyCreateRootFromDOMContainer(
       container,
@@ -207,6 +208,7 @@ function legacyRenderSubtreeIntoContainer(
       updateContainer(children, fiberRoot, parentComponent, callback);
     });
   } else {
+    console.log('update');
     fiberRoot = root._internalRoot;
     if (typeof callback === 'function') {
       const originalCallback = callback;
@@ -289,6 +291,7 @@ export function render(
   container: Container,
   callback: ?Function,
 ) {
+  console.log('render', element);
   invariant(
     isValidContainer(container),
     'Target container is not a DOM element.',

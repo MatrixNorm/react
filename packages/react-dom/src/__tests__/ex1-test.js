@@ -38,7 +38,7 @@ describe('ex1', () => {
       return (
         <div>
           <Sub />
-          <span>petrushka</span>
+          <Sub2 />
         </div>
       );
     }
@@ -52,6 +52,22 @@ describe('ex1', () => {
         <button onClick={increment} ref={buttonRef}>
           {counter}
         </button>
+      );
+    }
+
+    function Sub2() {
+      return (
+        <div>
+          <Sub3 />
+        </div>
+      );
+    }
+
+    function Sub3() {
+      return (
+        <div>
+          <span>petrushka</span>
+        </div>
       );
     }
 
