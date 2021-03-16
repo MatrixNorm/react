@@ -481,6 +481,7 @@ export function createFiberFromTypeAndProps(
   mode: TypeOfMode,
   lanes: Lanes,
 ): Fiber {
+  console.log('createFiberFromTypeAndProps', type);
   let fiberTag = IndeterminateComponent;
   // The resolved type is set if we know what the final type will be. I.e. it's not lazy.
   let resolvedType = type;
@@ -615,6 +616,7 @@ export function createFiberFromElement(
   mode: TypeOfMode,
   lanes: Lanes,
 ): Fiber {
+  console.log('createFiberFromElement', element.type);
   let owner = null;
   if (__DEV__) {
     owner = element._owner;

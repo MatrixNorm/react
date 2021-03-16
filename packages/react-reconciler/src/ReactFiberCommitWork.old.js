@@ -602,6 +602,7 @@ function commitLayoutEffectOnFiber(
   finishedWork: Fiber,
   committedLanes: Lanes,
 ): void {
+  console.log('commitLayoutEffectOnFiber');
   if ((finishedWork.flags & (Update | Callback)) !== NoFlags) {
     switch (finishedWork.tag) {
       case FunctionComponent:
@@ -1628,6 +1629,7 @@ function commitDeletion(
 }
 
 function commitWork(current: Fiber | null, finishedWork: Fiber): void {
+  console.log('commitWork');
   if (!supportsMutation) {
     switch (finishedWork.tag) {
       case FunctionComponent:

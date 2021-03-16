@@ -32,6 +32,7 @@ function isEmpty(): boolean {
 }
 
 function pop<T>(cursor: StackCursor<T>, fiber: Fiber): void {
+  debugger;
   if (index < 0) {
     if (__DEV__) {
       console.error('Unexpected pop.');
@@ -57,6 +58,7 @@ function pop<T>(cursor: StackCursor<T>, fiber: Fiber): void {
 }
 
 function push<T>(cursor: StackCursor<T>, value: T, fiber: Fiber): void {
+  debugger;
   index++;
 
   valueStack[index] = cursor.current;

@@ -291,7 +291,6 @@ export function render(
   container: Container,
   callback: ?Function,
 ) {
-  console.log('render', element);
   invariant(
     isValidContainer(container),
     'Target container is not a DOM element.',

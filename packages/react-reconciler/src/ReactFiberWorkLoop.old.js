@@ -387,6 +387,7 @@ export function getCurrentTime() {
 }
 
 export function requestUpdateLane(fiber: Fiber): Lane {
+  debugger;
   // Special cases
   const mode = fiber.mode;
   if ((mode & BlockingMode) === NoMode) {
@@ -498,6 +499,7 @@ export function scheduleUpdateOnFiber(
   lane: Lane,
   eventTime: number,
 ): FiberRoot | null {
+  debugger;
   checkForNestedUpdates();
   warnAboutRenderPhaseUpdatesInDEV(fiber);
 
@@ -1472,6 +1474,7 @@ export function renderHasNotSuspendedYet(): boolean {
 }
 
 function renderRootSync(root: FiberRoot, lanes: Lanes) {
+  debugger;
   const prevExecutionContext = executionContext;
   executionContext |= RenderContext;
   const prevDispatcher = pushDispatcher();
@@ -1542,6 +1545,7 @@ function renderRootSync(root: FiberRoot, lanes: Lanes) {
 function workLoopSync() {
   // Already timed out, so perform work without checking if we need to yield.
   while (workInProgress !== null) {
+    debugger;
     performUnitOfWork(workInProgress);
   }
 }

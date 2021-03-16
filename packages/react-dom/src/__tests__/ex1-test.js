@@ -20,12 +20,8 @@ describe('ex1', () => {
 
   it('test2', () => {
     function App() {
-      return (
-        <div>
-          <p>123</p>
-          <span>45</span>
-        </div>
-      );
+      const [counter, setCounter] = React.useState(0);
+      return <div>{counter}</div>;
     }
     const container = document.createElement('div');
     ReactDOM.render(<App />, container);
