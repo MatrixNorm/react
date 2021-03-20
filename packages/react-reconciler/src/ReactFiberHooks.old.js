@@ -353,6 +353,7 @@ export function renderWithHooks<Props, SecondArg>(
   secondArg: SecondArg,
   nextRenderLanes: Lanes,
 ): any {
+  debugger;
   renderLanes = nextRenderLanes;
   currentlyRenderingFiber = workInProgress;
 

@@ -31,8 +31,18 @@ function isEmpty(): boolean {
   return index === -1;
 }
 
+function printableStack(valueStack) {
+  return valueStack.map(x => {
+    if (x?.stateNode) {
+      return x.type;
+    } else {
+      return x;
+    }
+  });
+}
+
 function pop<T>(cursor: StackCursor<T>, fiber: Fiber): void {
-  debugger;
+  //console.dir('pop', fiber.type, printableStack(valueStack));
   if (index < 0) {
     if (__DEV__) {
       console.error('Unexpected pop.');
@@ -58,7 +68,7 @@ function pop<T>(cursor: StackCursor<T>, fiber: Fiber): void {
 }
 
 function push<T>(cursor: StackCursor<T>, value: T, fiber: Fiber): void {
-  debugger;
+  //console.log('push', fiber.type, printableStack(valueStack));
   index++;
 
   valueStack[index] = cursor.current;

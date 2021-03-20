@@ -19,12 +19,29 @@ describe('ex1', () => {
   });
 
   it('test2', () => {
+    const divRef = React.createRef();
+
     function App() {
       const [counter, setCounter] = React.useState(0);
-      return <div>{counter}</div>;
+
+      function incrementCounter() {
+        setCounter(prev => prev + 1);
+      }
+
+      return (
+        <div onClick={incrementCounter} ref={divRef}>
+          {counter}
+        </div>
+      );
     }
     const container = document.createElement('div');
     ReactDOM.render(<App />, container);
+    console.log('---------------------------------');
+    // Dispatch a click event
+    const event = document.createEvent('Event');
+    event.initEvent('click', true, true);
+    debugger;
+    divRef.current.dispatchEvent(event);
   });
 
   it('test3', () => {
