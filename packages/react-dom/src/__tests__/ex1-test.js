@@ -18,6 +18,27 @@ describe('ex1', () => {
     ReactDOM.render(<App />, container);
   });
 
+  it('test1a', () => {
+    function App() {
+      return (
+        <div>
+          <b data-i="1"></b>
+          <b data-i="2">
+            <span data-i="1">
+              <i data-i="1"></i>
+              <i data-i="2"></i>
+            </span>
+          </b>
+          <b data-i="3">
+            <span data-i="2"></span>
+          </b>
+        </div>
+      );
+    }
+    const container = document.createElement('div');
+    ReactDOM.render(<App />, container);
+  });
+
   it('test2', () => {
     const divRef = React.createRef();
 

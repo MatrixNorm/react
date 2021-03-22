@@ -3231,7 +3231,7 @@ function beginWork(
     'begin',
     current?.type,
     workInProgress.type,
-    workInProgress.return?.type,
+    (workInProgress.pendingProps || {})['data-i'],
   );
   let updateLanes = workInProgress.lanes;
 
