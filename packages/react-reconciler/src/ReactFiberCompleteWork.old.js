@@ -207,6 +207,7 @@ if (supportsMutation) {
     let node = workInProgress.child;
     while (node !== null) {
       if (node.tag === HostComponent || node.tag === HostText) {
+        // DOM API: parent.appendChild(node.stateNode);
         appendInitialChild(parent, node.stateNode);
       } else if (node.tag === HostPortal) {
         // If we have a portal child, then we don't want to traverse
@@ -790,13 +791,12 @@ function completeWork(
   workInProgress: Fiber,
   renderLanes: Lanes,
 ): Fiber | null {
-  debugger;
-  console.log(
-    'complete',
-    current?.type,
-    workInProgress?.type,
-    (workInProgress.pendingProps || {})['data-i'],
-  );
+  // console.log(
+  //   'complete',
+  //   current ? current.type || 'root' : null,
+  //   workInProgress.type || 'root',
+  //   workInProgress.updateQueue,
+  // );
   const newProps = workInProgress.pendingProps;
 
   switch (workInProgress.tag) {
@@ -904,6 +904,7 @@ function completeWork(
             markUpdate(workInProgress);
           }
         } else {
+          // DOM element in case of react-dom renderer. Holds reference to fiber.
           const instance = createInstance(
             type,
             newProps,
@@ -911,7 +912,7 @@ function completeWork(
             currentHostContext,
             workInProgress,
           );
-
+          //console.log(instance);
           appendAllChildren(instance, workInProgress, false, false);
 
           workInProgress.stateNode = instance;

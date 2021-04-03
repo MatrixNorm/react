@@ -15,28 +15,9 @@ describe('ex1', () => {
       return <div>hi</div>;
     }
     const container = document.createElement('div');
+    window.__matrixnorm_container = container;
     ReactDOM.render(<App />, container);
-  });
-
-  it('test1a', () => {
-    function App() {
-      return (
-        <div>
-          <b data-i="1"></b>
-          <b data-i="2">
-            <span data-i="1">
-              <i data-i="1"></i>
-              <i data-i="2"></i>
-            </span>
-          </b>
-          <b data-i="3">
-            <span data-i="2"></span>
-          </b>
-        </div>
-      );
-    }
-    const container = document.createElement('div');
-    ReactDOM.render(<App />, container);
+    //console.log(window.__matrixnorm_container.innerHTML);
   });
 
   it('test2', () => {
@@ -56,6 +37,7 @@ describe('ex1', () => {
       );
     }
     const container = document.createElement('div');
+    window.__matrixnorm_container = container;
     ReactDOM.render(<App />, container);
     console.log('---------------------------------');
     // Dispatch a click event
@@ -66,52 +48,100 @@ describe('ex1', () => {
   });
 
   it('test3', () => {
-    const buttonRef = React.createRef();
+    const divRef = React.createRef();
 
     function App() {
-      return (
-        <div>
-          <Sub />
-          <Sub2 />
-        </div>
-      );
-    }
-
-    function Sub() {
       const [counter, setCounter] = React.useState(0);
-      function increment() {
+
+      function incrementCounter() {
         setCounter(prev => prev + 1);
       }
-      return (
-        <button onClick={increment} ref={buttonRef}>
-          {counter}
-        </button>
-      );
-    }
 
-    function Sub2() {
       return (
-        <div>
-          <Sub3 />
+        <div onClick={incrementCounter} ref={divRef}>
+          {counter === 0 ? <i></i> : <b></b>}
         </div>
       );
     }
-
-    function Sub3() {
-      return (
-        <div>
-          <span>petrushka</span>
-        </div>
-      );
-    }
-
     const container = document.createElement('div');
+    window.__matrixnorm_container = container;
     ReactDOM.render(<App />, container);
-
     console.log('---------------------------------');
     // Dispatch a click event
     const event = document.createEvent('Event');
     event.initEvent('click', true, true);
-    buttonRef.current.dispatchEvent(event);
+    debugger;
+    divRef.current.dispatchEvent(event);
   });
+
+  // it('test1a', () => {
+  //   function App() {
+  //     return (
+  //       <div>
+  //         <b data-i="1"></b>
+  //         <b data-i="2">
+  //           <span data-i="1">
+  //             <i data-i="1"></i>
+  //             <i data-i="2"></i>
+  //           </span>
+  //         </b>
+  //         <b data-i="3">
+  //           <span data-i="2"></span>
+  //         </b>
+  //       </div>
+  //     );
+  //   }
+  //   const container = document.createElement('div');
+  //   ReactDOM.render(<App />, container);
+  // });
+
+  // it('test3', () => {
+  //   const buttonRef = React.createRef();
+
+  //   function App() {
+  //     return (
+  //       <div>
+  //         <Sub />
+  //         <Sub2 />
+  //       </div>
+  //     );
+  //   }
+
+  //   function Sub() {
+  //     const [counter, setCounter] = React.useState(0);
+  //     function increment() {
+  //       setCounter(prev => prev + 1);
+  //     }
+  //     return (
+  //       <button onClick={increment} ref={buttonRef}>
+  //         {counter}
+  //       </button>
+  //     );
+  //   }
+
+  //   function Sub2() {
+  //     return (
+  //       <div>
+  //         <Sub3 />
+  //       </div>
+  //     );
+  //   }
+
+  //   function Sub3() {
+  //     return (
+  //       <div>
+  //         <span>petrushka</span>
+  //       </div>
+  //     );
+  //   }
+
+  //   const container = document.createElement('div');
+  //   ReactDOM.render(<App />, container);
+
+  //   console.log('---------------------------------');
+  //   // Dispatch a click event
+  //   const event = document.createEvent('Event');
+  //   event.initEvent('click', true, true);
+  //   buttonRef.current.dispatchEvent(event);
+  // });
 });

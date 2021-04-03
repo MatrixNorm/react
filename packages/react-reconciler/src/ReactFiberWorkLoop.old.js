@@ -236,6 +236,7 @@ import {onCommitRoot as onCommitRootTestSelector} from './ReactTestSelectors';
 
 // Used by `act`
 import enqueueTask from 'shared/enqueueTask';
+import {compress} from 'targz';
 
 const ceil = Math.ceil;
 
@@ -387,7 +388,6 @@ export function getCurrentTime() {
 }
 
 export function requestUpdateLane(fiber: Fiber): Lane {
-  debugger;
   // Special cases
   const mode = fiber.mode;
   if ((mode & BlockingMode) === NoMode) {
@@ -499,7 +499,6 @@ export function scheduleUpdateOnFiber(
   lane: Lane,
   eventTime: number,
 ): FiberRoot | null {
-  debugger;
   checkForNestedUpdates();
   warnAboutRenderPhaseUpdatesInDEV(fiber);
 
@@ -998,6 +997,7 @@ function markRootSuspended(root, suspendedLanes) {
 // This is the entry point for synchronous tasks that don't go
 // through Scheduler
 function performSyncWorkOnRoot(root) {
+  console.log('performSyncWorkOnRoot');
   if (enableProfilerTimer && enableProfilerNestedUpdatePhase) {
     syncNestedUpdateFlag();
   }
@@ -1036,6 +1036,7 @@ function performSyncWorkOnRoot(root) {
       }
     }
     exitStatus = renderRootSync(root, lanes);
+    console.log('done renderRootSync');
   }
 
   if (root.tag !== LegacyRoot && exitStatus === RootErrored) {
@@ -1545,7 +1546,6 @@ function renderRootSync(root: FiberRoot, lanes: Lanes) {
 function workLoopSync() {
   // Already timed out, so perform work without checking if we need to yield.
   while (workInProgress !== null) {
-    debugger;
     performUnitOfWork(workInProgress);
   }
 }
@@ -1742,7 +1742,6 @@ function completeUnitOfWork(unitOfWork: Fiber): void {
     // Update the next thing we're working on in case something throws.
     workInProgress = completedWork;
   } while (completedWork !== null);
-
   // We've reached the root.
   if (workInProgressRootExitStatus === RootIncomplete) {
     workInProgressRootExitStatus = RootCompleted;
@@ -1762,6 +1761,7 @@ function commitRoot(root) {
 }
 
 function commitRootImpl(root, renderPriorityLevel) {
+  debugger;
   do {
     // `flushPassiveEffects` will call `flushSyncUpdateQueue` at the end, which
     // means `flushPassiveEffects` will sometimes result in additional
@@ -1769,6 +1769,7 @@ function commitRootImpl(root, renderPriorityLevel) {
     // no more pending effects.
     // TODO: Might be better if `flushPassiveEffects` did not automatically
     // flush synchronous work at the end, to avoid factoring hazards like this.
+    console.log('commitRootImpl');
     flushPassiveEffects();
   } while (rootWithPendingPassiveEffects !== null);
   flushRenderPhaseStrictModeWarningsInDEV();
@@ -1914,8 +1915,8 @@ function commitRootImpl(root, renderPriorityLevel) {
     }
 
     // The next phase is the mutation phase, where we mutate the host tree.
+    // DOM mutated here
     commitMutationEffects(root, renderPriorityLevel, finishedWork);
-
     if (shouldFireAfterActiveInstanceBlur) {
       afterActiveInstanceBlur();
     }
@@ -2111,6 +2112,7 @@ export function flushPassiveEffects(): boolean {
     const previousLanePriority = getCurrentUpdateLanePriority();
     try {
       setCurrentUpdateLanePriority(priorityLevel);
+      throw 'aaa';
       return flushPassiveEffectsImpl();
     } finally {
       setCurrentUpdateLanePriority(previousLanePriority);

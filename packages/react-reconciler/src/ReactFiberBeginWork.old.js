@@ -3226,13 +3226,11 @@ function beginWork(
   workInProgress: Fiber,
   renderLanes: Lanes,
 ): Fiber | null {
-  debugger;
-  console.log(
-    'begin',
-    current?.type,
-    workInProgress.type,
-    (workInProgress.pendingProps || {})['data-i'],
-  );
+  // console.log(
+  //   'begin',
+  //   current ? current.type || 'root' : null,
+  //   workInProgress.type || 'root',
+  // );
   let updateLanes = workInProgress.lanes;
 
   if (__DEV__) {

@@ -1629,7 +1629,8 @@ function commitDeletion(
 }
 
 function commitWork(current: Fiber | null, finishedWork: Fiber): void {
-  console.log('commitWork');
+  debugger;
+  console.log('commitWork', current?.type, finishedWork.type);
   if (!supportsMutation) {
     switch (finishedWork.tag) {
       case FunctionComponent:
@@ -2071,7 +2072,9 @@ function commitMutationEffectsOnFiber(
   const primaryFlags = flags & (Placement | Update | Hydrating);
   outer: switch (primaryFlags) {
     case Placement: {
+      console.log('Placement', finishedWork.type, finishedWork.updateQueue);
       commitPlacement(finishedWork);
+      console.log(window.__matrixnorm_container?.innerHTML);
       // Clear the "placement" from effect tag so that we know that this is
       // inserted, before any life-cycles like componentDidMount gets called.
       // TODO: findDOMNode doesn't rely on this any more but isMounted does
@@ -2080,6 +2083,7 @@ function commitMutationEffectsOnFiber(
       break;
     }
     case PlacementAndUpdate: {
+      console.log('PlacementAndUpdate');
       // Placement
       commitPlacement(finishedWork);
       // Clear the "placement" from effect tag so that we know that this is
@@ -2104,8 +2108,11 @@ function commitMutationEffectsOnFiber(
       break;
     }
     case Update: {
+      debugger;
+      console.log('Update', finishedWork.type, finishedWork.updateQueue);
       const current = finishedWork.alternate;
       commitWork(current, finishedWork);
+      console.log(window.__matrixnorm_container?.innerHTML);
       break;
     }
   }
@@ -2142,6 +2149,7 @@ function commitLayoutMountEffects_complete(
   root: FiberRoot,
   committedLanes: Lanes,
 ) {
+  console.log('commitLayoutMountEffects_complete');
   while (nextEffect !== null) {
     const fiber = nextEffect;
     if ((fiber.flags & LayoutMask) !== NoFlags) {
