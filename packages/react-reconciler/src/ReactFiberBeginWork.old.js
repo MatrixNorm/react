@@ -3229,7 +3229,7 @@ function beginWork(
   renderLanes: Lanes,
 ): Fiber | null {
   console.log(
-    'begin',
+    'B:',
     current ? current.type || 'root' : null,
     workInProgress.type || 'root',
     (workInProgress.deletions || []).map(d => d.type),

@@ -792,7 +792,7 @@ function completeWork(
   renderLanes: Lanes,
 ): Fiber | null {
   console.log(
-    'complete',
+    'C:',
     current ? current.type || 'root' : null,
     workInProgress.type || 'root',
     (workInProgress.deletions || []).map(d => d.type),

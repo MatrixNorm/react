@@ -22,7 +22,7 @@ describe('ex1', () => {
     //console.log(window.__matrixnorm_container.innerHTML);
   });
 
-  it('double_render_same-tag', () => {
+  it('double_render_same_tag', () => {
     const container = document.createElement('div');
     window.__matrixnorm_container = container;
     ReactDOM.render(<div className="old">hi</div>, container);
@@ -36,6 +36,24 @@ describe('ex1', () => {
     ReactDOM.render(<div>hi</div>, container);
     console.log('---------------------');
     ReactDOM.render(<span>hi</span>, container);
+  });
+
+  it('double_render_different_tag_2', () => {
+    const container = document.createElement('div');
+    window.__matrixnorm_container = container;
+    ReactDOM.render(
+      <div>
+        <p>hi</p>
+      </div>,
+      container,
+    );
+    console.log('---------------------');
+    ReactDOM.render(
+      <div>
+        <span>hi</span>
+      </div>,
+      container,
+    );
   });
 
   it('double_render_different_function_component', () => {
@@ -93,6 +111,7 @@ describe('ex1', () => {
     ReactDOM.render(<App />, container);
     console.log('---------------------------------');
     ReactTestUtils.act(() => {
+      debugger;
       incrementCounter();
     });
   });
