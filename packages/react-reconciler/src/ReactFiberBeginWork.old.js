@@ -1145,6 +1145,7 @@ function pushHostRootContext(workInProgress) {
 }
 
 function updateHostRoot(current, workInProgress, renderLanes) {
+  debugger;
   pushHostRootContext(workInProgress);
   const updateQueue = workInProgress.updateQueue;
   invariant(
@@ -3165,6 +3166,7 @@ function remountFiber(
   oldWorkInProgress: Fiber,
   newWorkInProgress: Fiber,
 ): Fiber | null {
+  console.log('remountFiber');
   if (__DEV__) {
     const returnFiber = oldWorkInProgress.return;
     if (returnFiber === null) {
@@ -3226,11 +3228,12 @@ function beginWork(
   workInProgress: Fiber,
   renderLanes: Lanes,
 ): Fiber | null {
-  // console.log(
-  //   'begin',
-  //   current ? current.type || 'root' : null,
-  //   workInProgress.type || 'root',
-  // );
+  console.log(
+    'begin',
+    current ? current.type || 'root' : null,
+    workInProgress.type || 'root',
+    (workInProgress.deletions || []).map(d => d.type),
+  );
   let updateLanes = workInProgress.lanes;
 
   if (__DEV__) {

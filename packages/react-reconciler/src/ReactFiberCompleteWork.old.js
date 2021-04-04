@@ -791,12 +791,12 @@ function completeWork(
   workInProgress: Fiber,
   renderLanes: Lanes,
 ): Fiber | null {
-  // console.log(
-  //   'complete',
-  //   current ? current.type || 'root' : null,
-  //   workInProgress.type || 'root',
-  //   workInProgress.updateQueue,
-  // );
+  console.log(
+    'complete',
+    current ? current.type || 'root' : null,
+    workInProgress.type || 'root',
+    (workInProgress.deletions || []).map(d => d.type),
+  );
   const newProps = workInProgress.pendingProps;
 
   switch (workInProgress.tag) {

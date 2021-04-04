@@ -20,6 +20,37 @@ describe('ex1', () => {
     //console.log(window.__matrixnorm_container.innerHTML);
   });
 
+  it('test1a', () => {
+    const container = document.createElement('div');
+    window.__matrixnorm_container = container;
+    ReactDOM.render(<div className="old">hi</div>, container);
+    console.log('---------------------');
+    ReactDOM.render(<div className="new">hi</div>, container);
+  });
+
+  it('test1aa', () => {
+    const container = document.createElement('div');
+    window.__matrixnorm_container = container;
+    ReactDOM.render(<div>hi</div>, container);
+    console.log('---------------------');
+    ReactDOM.render(<span>hi</span>, container);
+  });
+
+  it('test1b', () => {
+    function App1() {
+      return <div className="old">hi</div>;
+    }
+    function App2() {
+      return <div className="new">hi</div>;
+    }
+    const container = document.createElement('div');
+    window.__matrixnorm_container = container;
+    ReactDOM.render(<App1 />, container);
+    console.log('---------------------');
+    ReactDOM.render(<App2 />, container);
+    //console.log(window.__matrixnorm_container.innerHTML);
+  });
+
   it('test2', () => {
     const divRef = React.createRef();
 
@@ -59,7 +90,7 @@ describe('ex1', () => {
 
       return (
         <div onClick={incrementCounter} ref={divRef}>
-          {counter === 0 ? <i></i> : <b></b>}
+          {counter === 0 ? <h1></h1> : <span></span>}
         </div>
       );
     }

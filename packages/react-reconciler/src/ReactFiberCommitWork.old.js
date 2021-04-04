@@ -288,10 +288,11 @@ export function commitBeforeMutationEffects(
 function commitBeforeMutationEffects_begin() {
   while (nextEffect !== null) {
     const fiber = nextEffect;
-
     // TODO: Should wrap this in flags check, too, as optimization
     const deletions = fiber.deletions;
     if (deletions !== null) {
+      debugger;
+      console.log('commitBeforeMutationEffects_begin', fiber.type);
       for (let i = 0; i < deletions.length; i++) {
         const deletion = deletions[i];
         commitBeforeMutationEffectsDeletion(deletion);
@@ -2045,6 +2046,7 @@ function commitMutationEffectsOnFiber(
   root: FiberRoot,
   renderPriorityLevel: LanePriority,
 ) {
+  console.log('commitMutationEffectsOnFiber', finishedWork.type);
   const flags = finishedWork.flags;
 
   if (flags & ContentReset) {
@@ -2298,7 +2300,7 @@ function commitPassiveUnmountEffects_begin() {
   while (nextEffect !== null) {
     const fiber = nextEffect;
     const child = fiber.child;
-
+    console.log('commitPassiveUnmountEffects_begin');
     if ((nextEffect.flags & ChildDeletion) !== NoFlags) {
       const deletions = fiber.deletions;
       if (deletions !== null) {
