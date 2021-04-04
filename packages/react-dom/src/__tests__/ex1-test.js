@@ -2,15 +2,17 @@
 
 let React;
 let ReactDOM;
+let ReactTestUtils;
 
 describe('ex1', () => {
   beforeEach(() => {
     jest.resetModules();
     React = require('react');
     ReactDOM = require('react-dom');
+    ReactTestUtils = require('react-dom/test-utils');
   });
 
-  it('test1', () => {
+  it('hello_world', () => {
     function App() {
       return <div>hi</div>;
     }
@@ -20,7 +22,7 @@ describe('ex1', () => {
     //console.log(window.__matrixnorm_container.innerHTML);
   });
 
-  it('test1a', () => {
+  it('double_render_same-tag', () => {
     const container = document.createElement('div');
     window.__matrixnorm_container = container;
     ReactDOM.render(<div className="old">hi</div>, container);
@@ -28,7 +30,7 @@ describe('ex1', () => {
     ReactDOM.render(<div className="new">hi</div>, container);
   });
 
-  it('test1aa', () => {
+  it('double_render_different_tag', () => {
     const container = document.createElement('div');
     window.__matrixnorm_container = container;
     ReactDOM.render(<div>hi</div>, container);
@@ -36,12 +38,12 @@ describe('ex1', () => {
     ReactDOM.render(<span>hi</span>, container);
   });
 
-  it('test1b', () => {
+  it('double_render_different_function_component', () => {
     function App1() {
-      return <div className="old">hi</div>;
+      return <div>hi</div>;
     }
     function App2() {
-      return <div className="new">hi</div>;
+      return <div>hi</div>;
     }
     const container = document.createElement('div');
     window.__matrixnorm_container = container;
@@ -51,58 +53,65 @@ describe('ex1', () => {
     //console.log(window.__matrixnorm_container.innerHTML);
   });
 
-  it('test2', () => {
-    const divRef = React.createRef();
+  // it('counter_increment', () => {
+  //   const divRef = React.createRef();
+
+  //   function App() {
+  //     const [counter, setCounter] = React.useState(0);
+
+  //     function incrementCounter() {
+  //       setCounter(prev => prev + 1);
+  //     }
+
+  //     return (
+  //       <div onClick={incrementCounter} ref={divRef}>
+  //         {counter}
+  //       </div>
+  //     );
+  //   }
+  //   const container = document.createElement('div');
+  //   window.__matrixnorm_container = container;
+  //   ReactDOM.render(<App />, container);
+  //   console.log('---------------------------------');
+  //   // Dispatch a click event
+  //   debugger;
+  //   const event = document.createEvent('Event');
+  //   event.initEvent('click', true, true);
+  //   divRef.current.dispatchEvent(event);
+  // });
+
+  it('counter_increment', () => {
+    let incrementCounter = null;
 
     function App() {
       const [counter, setCounter] = React.useState(0);
-
-      function incrementCounter() {
-        setCounter(prev => prev + 1);
-      }
-
-      return (
-        <div onClick={incrementCounter} ref={divRef}>
-          {counter}
-        </div>
-      );
+      incrementCounter = () => setCounter(prev => prev + 1);
+      return <div>{counter}</div>;
     }
     const container = document.createElement('div');
     window.__matrixnorm_container = container;
     ReactDOM.render(<App />, container);
     console.log('---------------------------------');
-    // Dispatch a click event
-    const event = document.createEvent('Event');
-    event.initEvent('click', true, true);
-    debugger;
-    divRef.current.dispatchEvent(event);
+    ReactTestUtils.act(() => {
+      incrementCounter();
+    });
   });
 
-  it('test3', () => {
-    const divRef = React.createRef();
+  it('set_state_different_tag', () => {
+    let toggleFlag = null;
 
     function App() {
-      const [counter, setCounter] = React.useState(0);
-
-      function incrementCounter() {
-        setCounter(prev => prev + 1);
-      }
-
-      return (
-        <div onClick={incrementCounter} ref={divRef}>
-          {counter === 0 ? <h1></h1> : <span></span>}
-        </div>
-      );
+      const [flag, setFlag] = React.useState(true);
+      toggleFlag = () => setFlag(prev => !prev);
+      return flag ? <h1></h1> : <span></span>;
     }
     const container = document.createElement('div');
     window.__matrixnorm_container = container;
     ReactDOM.render(<App />, container);
     console.log('---------------------------------');
-    // Dispatch a click event
-    const event = document.createEvent('Event');
-    event.initEvent('click', true, true);
-    debugger;
-    divRef.current.dispatchEvent(event);
+    ReactTestUtils.act(() => {
+      toggleFlag();
+    });
   });
 
   // it('test1a', () => {

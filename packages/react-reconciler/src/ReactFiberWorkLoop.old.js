@@ -2111,8 +2111,8 @@ export function flushPassiveEffects(): boolean {
     pendingPassiveEffectsRenderPriority = NoLanePriority;
     const previousLanePriority = getCurrentUpdateLanePriority();
     try {
+      console.log('flushPassiveEffects');
       setCurrentUpdateLanePriority(priorityLevel);
-      throw 'aaa';
       return flushPassiveEffectsImpl();
     } finally {
       setCurrentUpdateLanePriority(previousLanePriority);
