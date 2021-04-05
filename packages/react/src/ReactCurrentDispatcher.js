@@ -17,6 +17,14 @@ const ReactCurrentDispatcher = {
    * @internal
    * @type {ReactComponent}
    */
+  // set current(value) {
+  //   //console.log('set:', value);
+  //   this._current = value;
+  // },
+  // get current() {
+  //   //console.log('get:', this._current);
+  //   return this._current;
+  // },
   current: (null: null | Dispatcher),
 };
 
