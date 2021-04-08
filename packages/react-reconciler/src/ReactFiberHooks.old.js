@@ -353,7 +353,6 @@ export function renderWithHooks<Props, SecondArg>(
   secondArg: SecondArg,
   nextRenderLanes: Lanes,
 ): any {
-  debugger;
   renderLanes = nextRenderLanes;
   currentlyRenderingFiber = workInProgress;
 
@@ -514,7 +513,6 @@ export function renderWithHooks<Props, SecondArg>(
       }
     }
   }
-
   return children;
 }
 
@@ -1236,7 +1234,17 @@ function updateMutableSource<Source, Snapshot>(
 function mountState<S>(
   initialState: (() => S) | S,
 ): [S, Dispatch<BasicStateAction<S>>] {
+  console.log('mountState');
   const hook = mountWorkInProgressHook();
+  /*
+    {
+      memoizedState: null,
+      baseState: null,
+      baseQueue: null,
+      queue: null,
+      next: null
+    }
+  */
   if (typeof initialState === 'function') {
     // $FlowFixMe: Flow doesn't like mixed types
     initialState = initialState();
@@ -1263,6 +1271,7 @@ function mountState<S>(
 function updateState<S>(
   initialState: (() => S) | S,
 ): [S, Dispatch<BasicStateAction<S>>] {
+  console.log('updateState');
   return updateReducer(basicStateReducer, (initialState: any));
 }
 

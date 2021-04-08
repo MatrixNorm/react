@@ -291,7 +291,7 @@ function commitBeforeMutationEffects_begin() {
     // TODO: Should wrap this in flags check, too, as optimization
     const deletions = fiber.deletions;
     if (deletions !== null) {
-      debugger;
+      //debugger;
       console.log('commitBeforeMutationEffects_begin', fiber.type);
       for (let i = 0; i < deletions.length; i++) {
         const deletion = deletions[i];
@@ -1630,7 +1630,7 @@ function commitDeletion(
 }
 
 function commitWork(current: Fiber | null, finishedWork: Fiber): void {
-  debugger;
+  //debugger;
   console.log('commitWork', current?.type, finishedWork.type);
   if (!supportsMutation) {
     switch (finishedWork.tag) {
@@ -2110,7 +2110,7 @@ function commitMutationEffectsOnFiber(
       break;
     }
     case Update: {
-      debugger;
+      //debugger;
       console.log('Update', finishedWork.type, finishedWork.updateQueue);
       const current = finishedWork.alternate;
       commitWork(current, finishedWork);

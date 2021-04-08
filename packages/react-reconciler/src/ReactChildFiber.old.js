@@ -260,7 +260,7 @@ function resolveLazy(lazyType) {
 // live outside of this function.
 function ChildReconciler(shouldTrackSideEffects) {
   function deleteChild(returnFiber: Fiber, childToDelete: Fiber): void {
-    debugger;
+    //debugger;
     if (!shouldTrackSideEffects) {
       // Noop.
       return;
@@ -278,7 +278,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     returnFiber: Fiber,
     currentFirstChild: Fiber | null,
   ): null {
-    debugger;
+    //debugger;
     if (!shouldTrackSideEffects) {
       // Noop.
       return null;

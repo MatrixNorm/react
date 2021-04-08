@@ -499,6 +499,7 @@ export function scheduleUpdateOnFiber(
   lane: Lane,
   eventTime: number,
 ): FiberRoot | null {
+  debugger;
   checkForNestedUpdates();
   warnAboutRenderPhaseUpdatesInDEV(fiber);
 
@@ -577,6 +578,7 @@ export function scheduleUpdateOnFiber(
       // should be deferred until the end of the batch.
       performSyncWorkOnRoot(root);
     } else {
+      debugger;
       ensureRootIsScheduled(root, eventTime);
       schedulePendingInteractions(root, lane);
       if (executionContext === NoContext) {
@@ -997,6 +999,7 @@ function markRootSuspended(root, suspendedLanes) {
 // This is the entry point for synchronous tasks that don't go
 // through Scheduler
 function performSyncWorkOnRoot(root) {
+  debugger;
   console.log('performSyncWorkOnRoot');
   if (enableProfilerTimer && enableProfilerNestedUpdatePhase) {
     syncNestedUpdateFlag();
@@ -1148,6 +1151,7 @@ function flushPendingDiscreteUpdates() {
 }
 
 export function batchedUpdates<A, R>(fn: A => R, a: A): R {
+  console.log('batchedUpdates');
   const prevExecutionContext = executionContext;
   executionContext |= BatchedContext;
   try {
@@ -1163,6 +1167,7 @@ export function batchedUpdates<A, R>(fn: A => R, a: A): R {
 }
 
 export function batchedEventUpdates<A, R>(fn: A => R, a: A): R {
+  console.log('batchedEventUpdates');
   const prevExecutionContext = executionContext;
   executionContext |= EventContext;
   try {
@@ -1475,7 +1480,7 @@ export function renderHasNotSuspendedYet(): boolean {
 }
 
 function renderRootSync(root: FiberRoot, lanes: Lanes) {
-  debugger;
+  //debugger;
   const prevExecutionContext = executionContext;
   executionContext |= RenderContext;
   const prevDispatcher = pushDispatcher();
@@ -1761,7 +1766,7 @@ function commitRoot(root) {
 }
 
 function commitRootImpl(root, renderPriorityLevel) {
-  debugger;
+  //debugger;
   do {
     // `flushPassiveEffects` will call `flushSyncUpdateQueue` at the end, which
     // means `flushPassiveEffects` will sometimes result in additional

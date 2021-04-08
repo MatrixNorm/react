@@ -71,33 +71,6 @@ describe('ex1', () => {
     //console.log(window.__matrixnorm_container.innerHTML);
   });
 
-  // it('counter_increment', () => {
-  //   const divRef = React.createRef();
-
-  //   function App() {
-  //     const [counter, setCounter] = React.useState(0);
-
-  //     function incrementCounter() {
-  //       setCounter(prev => prev + 1);
-  //     }
-
-  //     return (
-  //       <div onClick={incrementCounter} ref={divRef}>
-  //         {counter}
-  //       </div>
-  //     );
-  //   }
-  //   const container = document.createElement('div');
-  //   window.__matrixnorm_container = container;
-  //   ReactDOM.render(<App />, container);
-  //   console.log('---------------------------------');
-  //   // Dispatch a click event
-  //   debugger;
-  //   const event = document.createEvent('Event');
-  //   event.initEvent('click', true, true);
-  //   divRef.current.dispatchEvent(event);
-  // });
-
   it('counter_increment', () => {
     let incrementCounter = null;
 

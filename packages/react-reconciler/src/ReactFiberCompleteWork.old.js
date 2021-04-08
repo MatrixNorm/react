@@ -260,7 +260,7 @@ if (supportsMutation) {
     // TODO: Experiencing an error where oldProps is null. Suggests a host
     // component is hitting the resume path. Figure out why. Possibly
     // related to `hidden`.
-    debugger;
+    //debugger;
     const updatePayload = prepareUpdate(
       instance,
       type,

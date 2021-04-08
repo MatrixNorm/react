@@ -22,7 +22,6 @@ type BasicStateAction<S> = (S => S) | S;
 type Dispatch<A> = A => void;
 
 function resolveDispatcher() {
-  console.log(ReactCurrentDispatcher.current);
   const dispatcher = ReactCurrentDispatcher.current;
   if (__DEV__) {
     if (dispatcher === null) {
