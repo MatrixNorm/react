@@ -3227,6 +3227,7 @@ function beginWork(
   workInProgress: Fiber,
   renderLanes: Lanes,
 ): Fiber | null {
+  debugger;
   console.log(
     'B:',
     current ? current.type || 'root' : null,

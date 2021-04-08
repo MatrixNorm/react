@@ -1289,6 +1289,7 @@ export function popRenderLanes(fiber: Fiber) {
 }
 
 function prepareFreshStack(root: FiberRoot, lanes: Lanes) {
+  debugger;
   root.finishedWork = null;
   root.finishedLanes = NoLanes;
 

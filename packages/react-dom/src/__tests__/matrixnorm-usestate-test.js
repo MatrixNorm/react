@@ -4,7 +4,7 @@ let React;
 let ReactDOM;
 let ReactTestUtils;
 
-describe('ex1', () => {
+describe('set-state', () => {
   beforeEach(() => {
     jest.resetModules();
     React = require('react');
