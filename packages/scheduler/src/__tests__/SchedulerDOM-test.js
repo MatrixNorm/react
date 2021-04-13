@@ -34,7 +34,11 @@ describe('SchedulerBrowser', () => {
     jest.resetModules();
 
     // Un-mock scheduler
-    jest.mock('scheduler', () => require.requireActual('scheduler'));
+    // jest.mock('scheduler', () => {
+    //   console.log(require.requireActual === jest.requireActual);
+    //   return require.requireActual('scheduler');
+    // });
+    jest.unmock('scheduler');
 
     runtime = installMockBrowserRuntime();
     performance = global.performance;
@@ -42,7 +46,7 @@ describe('SchedulerBrowser', () => {
     cancelCallback = Scheduler.unstable_cancelCallback;
     scheduleCallback = Scheduler.unstable_scheduleCallback;
     NormalPriority = Scheduler.unstable_NormalPriority;
-  });
+   });
 
   afterEach(() => {
     delete global.performance;

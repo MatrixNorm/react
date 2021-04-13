@@ -39,10 +39,7 @@ import {
 import {enableIsInputPending} from '../SchedulerFeatureFlags';
 
 let getCurrentTime;
-const hasPerformanceNow =
-  typeof performance === 'object' && typeof performance.now === 'function';
-
-if (hasPerformanceNow) {
+if (typeof performance === 'object' && typeof performance.now === 'function') {
   const localPerformance = performance;
   getCurrentTime = () => localPerformance.now();
 } else {
@@ -51,38 +48,60 @@ if (hasPerformanceNow) {
   getCurrentTime = () => localDate.now() - initialTime;
 }
 
+// Times out immediately
+const IMMEDIATE_PRIORITY_TIMEOUT = -1;
+// Eventually times out
+const USER_BLOCKING_PRIORITY_TIMEOUT = 250;
+const NORMAL_PRIORITY_TIMEOUT = 5000;
+const LOW_PRIORITY_TIMEOUT = 10000;
+// Never times out
 // Max 31 bit integer. The max integer size in V8 for 32-bit systems.
 // Math.pow(2, 30) - 1
 // 0b111111111111111111111111111111
-var maxSigned31BitInt = 1073741823;
+const IDLE_PRIORITY_TIMEOUT = 1073741823;
 
-// Times out immediately
-var IMMEDIATE_PRIORITY_TIMEOUT = -1;
-// Eventually times out
-var USER_BLOCKING_PRIORITY_TIMEOUT = 250;
-var NORMAL_PRIORITY_TIMEOUT = 5000;
-var LOW_PRIORITY_TIMEOUT = 10000;
-// Never times out
-var IDLE_PRIORITY_TIMEOUT = maxSigned31BitInt;
+/*****************             
+  STATE >>>>>>>
+ *****************/
 
 // Tasks are stored on a min heap
-var taskQueue = [];
-var timerQueue = [];
+let $taskQueue = [];
+let $timerQueue = [];
 
 // Incrementing id counter. Used to maintain insertion order.
-var taskIdCounter = 1;
+let $taskIdCounter = 1;
 
 // Pausing the scheduler is useful for debugging.
-var isSchedulerPaused = false;
+let $isSchedulerPaused = false;
 
-var currentTask = null;
-var currentPriorityLevel = NormalPriority;
+let $currentTask = null;
+let $currentPriorityLevel = NormalPriority;
 
 // This is set while performing work, to prevent re-entrancy.
-var isPerformingWork = false;
+let $isPerformingWork = false;
 
-var isHostCallbackScheduled = false;
-var isHostTimeoutScheduled = false;
+let isHostCallbackScheduled = false;
+let isHostTimeoutScheduled = false;
+
+let isMessageLoopRunning = false;
+let $scheduledHostCallback = null;
+let taskTimeoutID = -1;
+
+// Scheduler periodically yields in case there is other work on the main
+// thread, like user events. By default, it yields multiple times per frame.
+// It does not attempt to align with frame boundaries, since most tasks don't
+// need to be frame aligned; for those that do, use requestAnimationFrame.
+let $yieldInterval = 5;
+let $deadline = 0;
+
+// TODO: Make this configurable
+// TODO: Adjust this based on priority?
+const maxYieldInterval = 300;
+let needsPaint = false;
+
+/*****************             
+  <<<<<< STATE
+ *****************/
 
 // Capture local references to native APIs, in case a polyfill overrides them.
 const setTimeout = window.setTimeout;
@@ -116,16 +135,16 @@ if (typeof console !== 'undefined') {
 
 function advanceTimers(currentTime) {
   // Check for tasks that are no longer delayed and add them to the queue.
-  let timer = peek(timerQueue);
+  let timer = peek($timerQueue);
   while (timer !== null) {
     if (timer.callback === null) {
       // Timer was cancelled.
-      pop(timerQueue);
+      pop($timerQueue);
     } else if (timer.startTime <= currentTime) {
       // Timer fired. Transfer to the task queue.
-      pop(timerQueue);
+      pop($timerQueue);
       timer.sortIndex = timer.expirationTime;
-      push(taskQueue, timer);
+      push($taskQueue, timer);
       if (enableProfiling) {
         markTaskStart(timer, currentTime);
         timer.isQueued = true;
@@ -134,7 +153,7 @@ function advanceTimers(currentTime) {
       // Remaining timers are pending.
       return;
     }
-    timer = peek(timerQueue);
+    timer = peek($timerQueue);
   }
 }
 
@@ -143,11 +162,11 @@ function handleTimeout(currentTime) {
   advanceTimers(currentTime);
 
   if (!isHostCallbackScheduled) {
-    if (peek(taskQueue) !== null) {
+    if (peek($taskQueue) !== null) {
       isHostCallbackScheduled = true;
       requestHostCallback(flushWork);
     } else {
-      const firstTimer = peek(timerQueue);
+      const firstTimer = peek($timerQueue);
       if (firstTimer !== null) {
         requestHostTimeout(handleTimeout, firstTimer.startTime - currentTime);
       }
@@ -168,17 +187,17 @@ function flushWork(hasTimeRemaining, initialTime) {
     cancelHostTimeout();
   }
 
-  isPerformingWork = true;
-  const previousPriorityLevel = currentPriorityLevel;
+  $isPerformingWork = true;
+  const previousPriorityLevel = $currentPriorityLevel;
   try {
     if (enableProfiling) {
       try {
         return workLoop(hasTimeRemaining, initialTime);
       } catch (error) {
-        if (currentTask !== null) {
+        if ($currentTask !== null) {
           const currentTime = getCurrentTime();
-          markTaskErrored(currentTask, currentTime);
-          currentTask.isQueued = false;
+          markTaskErrored($currentTask, currentTime);
+          $currentTask.isQueued = false;
         }
         throw error;
       }
@@ -187,9 +206,9 @@ function flushWork(hasTimeRemaining, initialTime) {
       return workLoop(hasTimeRemaining, initialTime);
     }
   } finally {
-    currentTask = null;
-    currentPriorityLevel = previousPriorityLevel;
-    isPerformingWork = false;
+    $currentTask = null;
+    $currentPriorityLevel = previousPriorityLevel;
+    $isPerformingWork = false;
     if (enableProfiling) {
       const currentTime = getCurrentTime();
       markSchedulerSuspended(currentTime);
@@ -200,53 +219,53 @@ function flushWork(hasTimeRemaining, initialTime) {
 function workLoop(hasTimeRemaining, initialTime) {
   let currentTime = initialTime;
   advanceTimers(currentTime);
-  currentTask = peek(taskQueue);
+  $currentTask = peek($taskQueue);
   while (
-    currentTask !== null &&
-    !(enableSchedulerDebugging && isSchedulerPaused)
+    $currentTask !== null &&
+    !(enableSchedulerDebugging && $isSchedulerPaused)
   ) {
     if (
-      currentTask.expirationTime > currentTime &&
+      $currentTask.expirationTime > currentTime &&
       (!hasTimeRemaining || shouldYieldToHost())
     ) {
       // This currentTask hasn't expired, and we've reached the deadline.
       break;
     }
-    const callback = currentTask.callback;
+    const callback = $currentTask.callback;
     if (typeof callback === 'function') {
-      currentTask.callback = null;
-      currentPriorityLevel = currentTask.priorityLevel;
-      const didUserCallbackTimeout = currentTask.expirationTime <= currentTime;
+      $currentTask.callback = null;
+      $currentPriorityLevel = $currentTask.priorityLevel;
+      const didUserCallbackTimeout = $currentTask.expirationTime <= currentTime;
       if (enableProfiling) {
-        markTaskRun(currentTask, currentTime);
+        markTaskRun($currentTask, currentTime);
       }
       const continuationCallback = callback(didUserCallbackTimeout);
       currentTime = getCurrentTime();
       if (typeof continuationCallback === 'function') {
-        currentTask.callback = continuationCallback;
+        $currentTask.callback = continuationCallback;
         if (enableProfiling) {
-          markTaskYield(currentTask, currentTime);
+          markTaskYield($currentTask, currentTime);
         }
       } else {
         if (enableProfiling) {
-          markTaskCompleted(currentTask, currentTime);
-          currentTask.isQueued = false;
+          markTaskCompleted($currentTask, currentTime);
+          $currentTask.isQueued = false;
         }
-        if (currentTask === peek(taskQueue)) {
-          pop(taskQueue);
+        if ($currentTask === peek($taskQueue)) {
+          pop($taskQueue);
         }
       }
       advanceTimers(currentTime);
     } else {
-      pop(taskQueue);
+      pop($taskQueue);
     }
-    currentTask = peek(taskQueue);
+    $currentTask = peek($taskQueue);
   }
   // Return whether there's additional work
-  if (currentTask !== null) {
+  if ($currentTask !== null) {
     return true;
   } else {
-    const firstTimer = peek(timerQueue);
+    const firstTimer = peek($timerQueue);
     if (firstTimer !== null) {
       requestHostTimeout(handleTimeout, firstTimer.startTime - currentTime);
     }
@@ -266,19 +285,19 @@ function unstable_runWithPriority(priorityLevel, eventHandler) {
       priorityLevel = NormalPriority;
   }
 
-  var previousPriorityLevel = currentPriorityLevel;
-  currentPriorityLevel = priorityLevel;
+  var previousPriorityLevel = $currentPriorityLevel;
+  $currentPriorityLevel = priorityLevel;
 
   try {
     return eventHandler();
   } finally {
-    currentPriorityLevel = previousPriorityLevel;
+    $currentPriorityLevel = previousPriorityLevel;
   }
 }
 
 function unstable_next(eventHandler) {
   var priorityLevel;
-  switch (currentPriorityLevel) {
+  switch ($currentPriorityLevel) {
     case ImmediatePriority:
     case UserBlockingPriority:
     case NormalPriority:
@@ -287,31 +306,31 @@ function unstable_next(eventHandler) {
       break;
     default:
       // Anything lower than normal priority should remain at the current level.
-      priorityLevel = currentPriorityLevel;
+      priorityLevel = $currentPriorityLevel;
       break;
   }
 
-  var previousPriorityLevel = currentPriorityLevel;
-  currentPriorityLevel = priorityLevel;
+  var previousPriorityLevel = $currentPriorityLevel;
+  $currentPriorityLevel = priorityLevel;
 
   try {
     return eventHandler();
   } finally {
-    currentPriorityLevel = previousPriorityLevel;
+    $currentPriorityLevel = previousPriorityLevel;
   }
 }
 
 function unstable_wrapCallback(callback) {
-  var parentPriorityLevel = currentPriorityLevel;
+  var parentPriorityLevel = $currentPriorityLevel;
   return function() {
     // This is a fork of runWithPriority, inlined for performance.
-    var previousPriorityLevel = currentPriorityLevel;
-    currentPriorityLevel = parentPriorityLevel;
+    var previousPriorityLevel = $currentPriorityLevel;
+    $currentPriorityLevel = parentPriorityLevel;
 
     try {
       return callback.apply(this, arguments);
     } finally {
-      currentPriorityLevel = previousPriorityLevel;
+      $currentPriorityLevel = previousPriorityLevel;
     }
   };
 }
@@ -354,7 +373,7 @@ function unstable_scheduleCallback(priorityLevel, callback, options) {
   var expirationTime = startTime + timeout;
 
   var newTask = {
-    id: taskIdCounter++,
+    id: $taskIdCounter++,
     callback,
     priorityLevel,
     startTime,
@@ -368,8 +387,8 @@ function unstable_scheduleCallback(priorityLevel, callback, options) {
   if (startTime > currentTime) {
     // This is a delayed task.
     newTask.sortIndex = startTime;
-    push(timerQueue, newTask);
-    if (peek(taskQueue) === null && newTask === peek(timerQueue)) {
+    push($timerQueue, newTask);
+    if (peek($taskQueue) === null && newTask === peek($timerQueue)) {
       // All tasks are delayed, and this is the task with the earliest delay.
       if (isHostTimeoutScheduled) {
         // Cancel an existing timeout.
@@ -382,14 +401,14 @@ function unstable_scheduleCallback(priorityLevel, callback, options) {
     }
   } else {
     newTask.sortIndex = expirationTime;
-    push(taskQueue, newTask);
+    push($taskQueue, newTask);
     if (enableProfiling) {
       markTaskStart(newTask, currentTime);
       newTask.isQueued = true;
     }
     // Schedule a host callback, if needed. If we're already performing work,
     // wait until the next time we yield.
-    if (!isHostCallbackScheduled && !isPerformingWork) {
+    if (!isHostCallbackScheduled && !$isPerformingWork) {
       isHostCallbackScheduled = true;
       requestHostCallback(flushWork);
     }
@@ -399,19 +418,19 @@ function unstable_scheduleCallback(priorityLevel, callback, options) {
 }
 
 function unstable_pauseExecution() {
-  isSchedulerPaused = true;
+  $isSchedulerPaused = true;
 }
 
 function unstable_continueExecution() {
-  isSchedulerPaused = false;
-  if (!isHostCallbackScheduled && !isPerformingWork) {
+  $isSchedulerPaused = false;
+  if (!isHostCallbackScheduled && !$isPerformingWork) {
     isHostCallbackScheduled = true;
     requestHostCallback(flushWork);
   }
 }
 
 function unstable_getFirstCallbackNode() {
-  return peek(taskQueue);
+  return peek($taskQueue);
 }
 
 function unstable_cancelCallback(task) {
@@ -430,24 +449,8 @@ function unstable_cancelCallback(task) {
 }
 
 function unstable_getCurrentPriorityLevel() {
-  return currentPriorityLevel;
+  return $currentPriorityLevel;
 }
-
-let isMessageLoopRunning = false;
-let scheduledHostCallback = null;
-let taskTimeoutID = -1;
-
-// Scheduler periodically yields in case there is other work on the main
-// thread, like user events. By default, it yields multiple times per frame.
-// It does not attempt to align with frame boundaries, since most tasks don't
-// need to be frame aligned; for those that do, use requestAnimationFrame.
-let yieldInterval = 5;
-let deadline = 0;
-
-// TODO: Make this configurable
-// TODO: Adjust this based on priority?
-const maxYieldInterval = 300;
-let needsPaint = false;
 
 function shouldYieldToHost() {
   if (
@@ -458,7 +461,7 @@ function shouldYieldToHost() {
   ) {
     const scheduling = navigator.scheduling;
     const currentTime = getCurrentTime();
-    if (currentTime >= deadline) {
+    if (currentTime >= $deadline) {
       // There's no time left. We may want to yield control of the main
       // thread, so the browser can perform high priority tasks. The main ones
       // are painting and user input. If there's a pending paint or a pending
@@ -481,7 +484,7 @@ function shouldYieldToHost() {
   } else {
     // `isInputPending` is not available. Since we have no way of knowing if
     // there's pending input, always yield at the end of the frame.
-    return getCurrentTime() >= deadline;
+    return getCurrentTime() >= $deadline;
   }
 }
 
@@ -508,20 +511,20 @@ function forceFrameRate(fps) {
     return;
   }
   if (fps > 0) {
-    yieldInterval = Math.floor(1000 / fps);
+    $yieldInterval = Math.floor(1000 / fps);
   } else {
     // reset the framerate
-    yieldInterval = 5;
+    $yieldInterval = 5;
   }
 }
 
 const performWorkUntilDeadline = () => {
-  if (scheduledHostCallback !== null) {
+  if ($scheduledHostCallback !== null) {
     const currentTime = getCurrentTime();
     // Yield after `yieldInterval` ms, regardless of where we are in the vsync
     // cycle. This means there's always time remaining at the beginning of
     // the message event.
-    deadline = currentTime + yieldInterval;
+    $deadline = currentTime + $yieldInterval;
     const hasTimeRemaining = true;
 
     // If a scheduler task throws, exit the current browser task so the
@@ -532,7 +535,7 @@ const performWorkUntilDeadline = () => {
     // `hasMoreWork` will remain true, and we'll continue the work loop.
     let hasMoreWork = true;
     try {
-      hasMoreWork = scheduledHostCallback(hasTimeRemaining, currentTime);
+      hasMoreWork = $scheduledHostCallback(hasTimeRemaining, currentTime);
     } finally {
       if (hasMoreWork) {
         // If there's more work, schedule the next message event at the end
@@ -540,7 +543,7 @@ const performWorkUntilDeadline = () => {
         schedulePerformWorkUntilDeadline();
       } else {
         isMessageLoopRunning = false;
-        scheduledHostCallback = null;
+        $scheduledHostCallback = null;
       }
     }
   } else {
@@ -577,7 +580,7 @@ if (typeof setImmediate === 'function') {
 }
 
 function requestHostCallback(callback) {
-  scheduledHostCallback = callback;
+  $scheduledHostCallback = callback;
   if (!isMessageLoopRunning) {
     isMessageLoopRunning = true;
     schedulePerformWorkUntilDeadline();
