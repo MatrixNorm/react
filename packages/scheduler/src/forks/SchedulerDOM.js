@@ -80,12 +80,12 @@ let $currentPriorityLevel = NormalPriority;
 // This is set while performing work, to prevent re-entrancy.
 let $isPerformingWork = false;
 
-let isHostCallbackScheduled = false;
-let isHostTimeoutScheduled = false;
+let $isHostCallbackScheduled = false;
+let $isHostTimeoutScheduled = false;
 
 let isMessageLoopRunning = false;
 let $scheduledHostCallback = null;
-let taskTimeoutID = -1;
+let $taskTimeoutID = -1;
 
 // Scheduler periodically yields in case there is other work on the main
 // thread, like user events. By default, it yields multiple times per frame.
@@ -133,6 +133,7 @@ if (typeof console !== 'undefined') {
   }
 }
 
+// $$$ RW
 function advanceTimers(currentTime) {
   // Check for tasks that are no longer delayed and add them to the queue.
   let timer = peek($timerQueue);
@@ -158,17 +159,17 @@ function advanceTimers(currentTime) {
 }
 
 function handleTimeout(currentTime) {
-  isHostTimeoutScheduled = false;
+  $isHostTimeoutScheduled = false;
   advanceTimers(currentTime);
 
-  if (!isHostCallbackScheduled) {
+  if (!$isHostCallbackScheduled) {
     if (peek($taskQueue) !== null) {
-      isHostCallbackScheduled = true;
-      requestHostCallback(flushWork);
+      $isHostCallbackScheduled = true;
+      requestFlushWork();
     } else {
       const firstTimer = peek($timerQueue);
       if (firstTimer !== null) {
-        requestHostTimeout(handleTimeout, firstTimer.startTime - currentTime);
+        requestHandleTimeout(firstTimer.startTime - currentTime);
       }
     }
   }
@@ -180,10 +181,11 @@ function flushWork(hasTimeRemaining, initialTime) {
   }
 
   // We'll need a host callback the next time work is scheduled.
-  isHostCallbackScheduled = false;
-  if (isHostTimeoutScheduled) {
+  $isHostCallbackScheduled = false;
+
+  if ($isHostTimeoutScheduled) {
     // We scheduled a timeout but it's no longer needed. Cancel it.
-    isHostTimeoutScheduled = false;
+    $isHostTimeoutScheduled = false;
     cancelHostTimeout();
   }
 
@@ -267,7 +269,7 @@ function workLoop(hasTimeRemaining, initialTime) {
   } else {
     const firstTimer = peek($timerQueue);
     if (firstTimer !== null) {
-      requestHostTimeout(handleTimeout, firstTimer.startTime - currentTime);
+      requestHandleTimeout(firstTimer.startTime - currentTime);
     }
     return false;
   }
@@ -336,6 +338,7 @@ function unstable_wrapCallback(callback) {
 }
 
 function unstable_scheduleCallback(priorityLevel, callback, options) {
+  // coeffect
   var currentTime = getCurrentTime();
 
   var startTime;
@@ -387,17 +390,18 @@ function unstable_scheduleCallback(priorityLevel, callback, options) {
   if (startTime > currentTime) {
     // This is a delayed task.
     newTask.sortIndex = startTime;
+    // $$$
     push($timerQueue, newTask);
     if (peek($taskQueue) === null && newTask === peek($timerQueue)) {
       // All tasks are delayed, and this is the task with the earliest delay.
-      if (isHostTimeoutScheduled) {
+      if ($isHostTimeoutScheduled) {
         // Cancel an existing timeout.
         cancelHostTimeout();
       } else {
-        isHostTimeoutScheduled = true;
+        $isHostTimeoutScheduled = true;
       }
       // Schedule a timeout.
-      requestHostTimeout(handleTimeout, startTime - currentTime);
+      requestHandleTimeout(startTime - currentTime);
     }
   } else {
     newTask.sortIndex = expirationTime;
@@ -408,9 +412,9 @@ function unstable_scheduleCallback(priorityLevel, callback, options) {
     }
     // Schedule a host callback, if needed. If we're already performing work,
     // wait until the next time we yield.
-    if (!isHostCallbackScheduled && !$isPerformingWork) {
-      isHostCallbackScheduled = true;
-      requestHostCallback(flushWork);
+    if (!$isHostCallbackScheduled && !$isPerformingWork) {
+      $isHostCallbackScheduled = true;
+      requestFlushWork();
     }
   }
 
@@ -423,9 +427,9 @@ function unstable_pauseExecution() {
 
 function unstable_continueExecution() {
   $isSchedulerPaused = false;
-  if (!isHostCallbackScheduled && !$isPerformingWork) {
-    isHostCallbackScheduled = true;
-    requestHostCallback(flushWork);
+  if (!$isHostCallbackScheduled && !$isPerformingWork) {
+    $isHostCallbackScheduled = true;
+    requestFlushWork();
   }
 }
 
@@ -579,23 +583,26 @@ if (typeof setImmediate === 'function') {
   };
 }
 
-function requestHostCallback(callback) {
-  $scheduledHostCallback = callback;
+function requestFlushWork() {
+  $scheduledHostCallback = flushWork;
   if (!isMessageLoopRunning) {
     isMessageLoopRunning = true;
     schedulePerformWorkUntilDeadline();
   }
 }
 
-function requestHostTimeout(callback, ms) {
-  taskTimeoutID = setTimeout(() => {
-    callback(getCurrentTime());
+/**
+ * After ms miliseconds 
+ */
+function requestHandleTimeout(ms) {
+  $taskTimeoutID = setTimeout(() => {
+    handleTimeout(getCurrentTime());
   }, ms);
 }
 
 function cancelHostTimeout() {
-  clearTimeout(taskTimeoutID);
-  taskTimeoutID = -1;
+  clearTimeout($taskTimeoutID);
+  $taskTimeoutID = -1;
 }
 
 const unstable_requestPaint = requestPaint;
